@@ -7,7 +7,7 @@ import (
 )
 
 const JSON_FILE_NAME = "wcurl.json"
-const DIR_NAME = ".wcurl/"
+const DIR_NAME = ".wcurl"
 
 func HashExecPath() string {
 	p, err := os.Executable()
