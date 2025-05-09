@@ -45,6 +45,5 @@ func Run() {
 		default:
 			co.CommandFactory(input)
 		}
-
 	}
 }

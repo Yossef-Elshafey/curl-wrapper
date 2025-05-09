@@ -15,11 +15,22 @@ type WcurlWrapper struct {
 	Listener command.CommandHandler       `json:"-"`
 }
 
-var WcurlWrapperCache WcurlWrapper
+var (
+	WcurlWrapperCache WcurlWrapper
+	exposeInput       string
+)
+
+func (w *WcurlWrapper) InputRecivier(inp string) {
+	exposeInput = inp
+}
 
 func (w *WcurlWrapper) SetCommand() {
 	w.Listener.Add("init", "initialize a new project", w.NewProject)
-	w.Listener.Add("ep", "does something", w.NewProject)
+	w.Listener.Add("curl", "Write regular curl commands like any", w.CurlHandler)
+}
+
+func (w *WcurlWrapper) ExposeInput() {
+
 }
 
 func (w *WcurlWrapper) FilePath() string {
@@ -69,4 +80,10 @@ func (w *WcurlWrapper) NewProject() {
 	w.Data = make(map[string]endpoint.Endpoint)
 	w.Data[h] = endpoint.Endpoint{Ep: map[string][]string{"admin/local": make([]string, 0)}}
 	w.Write()
+}
+
+func (w *WcurlWrapper) CurlHandler() {
+	ch := command.CommandHandler{}
+	userInput := ch.Get()
+	fmt.Println(userInput)
 }

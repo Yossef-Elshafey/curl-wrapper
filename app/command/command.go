@@ -12,9 +12,18 @@ type CommandHandler struct {
 }
 
 var commandMap = make(map[string]*CommandHandler)
+var userInput string
 
 func (c *CommandHandler) Init() {
 	c.Add("help", "Print help", c.printHelp)
+}
+
+func (c *CommandHandler) set(s string) {
+	userInput = s
+}
+
+func (c *CommandHandler) Get() string {
+	return userInput
 }
 
 func (c *CommandHandler) Add(command string, desc string, f func()) {
@@ -48,9 +57,12 @@ func (c *CommandHandler) printHelp() {
 }
 
 func (c *CommandHandler) CommandFactory(inp string) {
-	if action, ok := commandMap[inp]; ok {
+	reqAction := strings.Split(inp, " ")
+
+	c.set(inp)
+	if action, ok := commandMap[reqAction[0]]; ok {
 		action.Executer()
 	} else {
-		fmt.Println("Unknown command:", inp)
+		fmt.Println("Unknown command:", reqAction[0])
 	}
 }
