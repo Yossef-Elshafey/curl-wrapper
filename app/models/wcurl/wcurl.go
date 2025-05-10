@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"wcurl/app/command"
 	"wcurl/app/models/endpoiot"
 	"wcurl/storage"
@@ -16,8 +17,8 @@ type WcurlWrapper struct {
 }
 
 var (
-	WcurlWrapperCache WcurlWrapper
-	exposeInput       string
+	// TODO: Cache loaded data
+	exposeInput string
 )
 
 func (w *WcurlWrapper) InputRecivier(inp string) {
@@ -27,10 +28,6 @@ func (w *WcurlWrapper) InputRecivier(inp string) {
 func (w *WcurlWrapper) SetCommand() {
 	w.Listener.Add("init", "initialize a new project", w.NewProject)
 	w.Listener.Add("curl", "Write regular curl commands like any", w.CurlHandler)
-}
-
-func (w *WcurlWrapper) ExposeInput() {
-
 }
 
 func (w *WcurlWrapper) FilePath() string {
@@ -55,12 +52,10 @@ func (w *WcurlWrapper) Load() WcurlWrapper {
 	if err != nil {
 		fmt.Println("error unmarshaling file:", err)
 	}
-	WcurlWrapperCache = ww
 	return ww
 }
 
 func (w *WcurlWrapper) Write() {
-	fmt.Println(w)
 	j, err := json.Marshal(w)
 	if err != nil {
 		fmt.Println("Marshal error:", err)
@@ -73,17 +68,36 @@ func (w *WcurlWrapper) Write() {
 	}
 }
 
+func (w *WcurlWrapper) validate(hash string) bool {
+	*w = w.Load()
+	if _, ok := w.Data[hash]; ok {
+		return true
+	}
+	return false
+}
+
 func (w *WcurlWrapper) NewProject() {
-	fmt.Println("hello idiot")
 	h := storage.HashExecPath()
 	*w = w.Load()
-	w.Data = make(map[string]endpoint.Endpoint)
-	w.Data[h] = endpoint.Endpoint{Ep: map[string][]string{"admin/local": make([]string, 0)}}
+
+	if w.validate(h) {
+		return
+	}
+
+	w.Data[h] = endpoint.Endpoint{Ep: map[string][]string{"": make([]string, 0)}}
 	w.Write()
 }
 
+func (w *WcurlWrapper) extractEndpoint(s string) string {
+	re := regexp.MustCompile(`^(?:https?:\/\/)?[^\/]+(\/.*)`)
+	matches := re.FindAllStringSubmatch(s, -1)
+	return matches[0][1]
+}
+
 func (w *WcurlWrapper) CurlHandler() {
-	ch := command.CommandHandler{}
-	userInput := ch.Get()
-	fmt.Println(userInput)
+	userInput := w.Listener.Get()
+	h := storage.HashExecPath()
+	ep := w.extractEndpoint(userInput)
+	*w = w.Load()
+	fmt.Println(w.Data[h].Ep[ep])
 }

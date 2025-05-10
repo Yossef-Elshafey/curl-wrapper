@@ -19,7 +19,7 @@ func HashExecPath() string {
 	h.Write([]byte(p))
 	// ph := h.Sum(nil)
 
-	return fmt.Sprintf("%x", "Hello idiot")
+	return fmt.Sprintf("%x", "idiot")
 }
 
 func createDir(path string) {

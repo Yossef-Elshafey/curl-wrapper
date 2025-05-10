@@ -58,8 +58,8 @@ func (c *CommandHandler) printHelp() {
 
 func (c *CommandHandler) CommandFactory(inp string) {
 	reqAction := strings.Split(inp, " ")
-
 	c.set(inp)
+
 	if action, ok := commandMap[reqAction[0]]; ok {
 		action.Executer()
 	} else {
