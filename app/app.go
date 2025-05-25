@@ -17,7 +17,7 @@ func setShellCommands(co command.CommandHandler) {
 func Run() {
 	ww := wcurl.WcurlWrapper{}
 	co := command.CommandHandler{}
-	ww.Listener = co
+	ww.CommandHandler = co
 
 	ww.SetCommand()
 	setShellCommands(co)

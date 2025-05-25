@@ -18,11 +18,11 @@ func (c *CommandHandler) Init() {
 	c.Add("help", "Print help", c.printHelp)
 }
 
-func (c *CommandHandler) set(s string) {
+func (c *CommandHandler) share(s string) {
 	userInput = s
 }
 
-func (c *CommandHandler) Get() string {
+func (c *CommandHandler) GetUserInput() string {
 	return userInput
 }
 
@@ -57,8 +57,8 @@ func (c *CommandHandler) printHelp() {
 }
 
 func (c *CommandHandler) CommandFactory(inp string) {
+	c.share(inp)
 	reqAction := strings.Split(inp, " ")
-	c.set(inp)
 
 	if action, ok := commandMap[reqAction[0]]; ok {
 		action.Executer()
