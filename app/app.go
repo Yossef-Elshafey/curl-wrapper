@@ -2,8 +2,8 @@ package app
 
 import (
 	"wcurl/app/command"
-	"wcurl/app/models/terminal"
 	"wcurl/app/models/wcurl"
+	"wcurl/app/terminal"
 )
 
 func Run() {

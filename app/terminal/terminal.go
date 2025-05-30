@@ -41,16 +41,20 @@ func (th *TerminalHandler) enterHandler(co command.CommandHandler) {
 		case "":
 			fmt.Printf("\n\r>> ")
 		case "exit":
-			fmt.Printf("\n\rExiting...\n\r")
 			th.exit = 1
 		case "clear":
 			fmt.Print("\033[2J\033[H")
 			fmt.Print(">> ")
 		default:
+			th.NewLine("Hello world")
 			co.CommandFactory(th.currentCommand)
 		}
 		th.currentCommand = ""
 	}
+}
+
+func (th *TerminalHandler) NewLine(s string) {
+	fmt.Printf("\n\r%s", s)
 }
 
 func (th *TerminalHandler) backspaceBehavior() {
@@ -87,6 +91,7 @@ func (th *TerminalHandler) Start(co command.CommandHandler) {
 		th.backspaceBehavior()
 
 		if th.exit == 1 {
+			fmt.Printf("\n\rExiting...\n\r")
 			return
 		}
 	}
