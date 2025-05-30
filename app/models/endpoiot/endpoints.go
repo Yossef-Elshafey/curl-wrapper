@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"wcurl/app/command"
-	"wcurl/storage"
+	"wcurl/app/storage"
 )
 
 type Endpoint struct {

@@ -1,49 +1,16 @@
 package app
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
 	"wcurl/app/command"
+	"wcurl/app/models/terminal"
 	"wcurl/app/models/wcurl"
 )
 
-func setShellCommands(co command.CommandHandler) {
-	co.Add("clear", "Clear shell", func() {})
-	co.Add("exit", "Exit program", func() {})
-}
-
 func Run() {
+	t := terminal.TerminalHandler{}
 	ww := wcurl.WcurlWrapper{}
 	co := command.CommandHandler{}
-	ww.CommandHandler = co
-
-	ww.SetCommand()
-	setShellCommands(co)
+	t.Start(co)
+	ww.Init()
 	co.Init()
-
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Printf(">> ")
-		input, err := reader.ReadString('\n')
-
-		if err != nil {
-			fmt.Println("Error reading input:", err)
-			continue
-		}
-
-		input = strings.TrimSpace(input)
-		switch input {
-		case "":
-			continue
-		case "exit":
-			fmt.Println("Exiting...")
-			return
-		case "clear":
-			fmt.Print("\033[2J\033[H")
-		default:
-			co.CommandFactory(input)
-		}
-	}
 }

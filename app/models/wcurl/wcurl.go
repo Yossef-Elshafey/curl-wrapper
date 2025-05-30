@@ -10,12 +10,12 @@ import (
 	"strings"
 	"wcurl/app/command"
 	"wcurl/app/models/endpoiot"
-	"wcurl/storage"
+	"wcurl/app/storage"
 )
 
 // NOTE: Endpoint is a map no order gurantee
 // NOTE: Add command stack, work with arrows
-// NOTE: Regex is maniac
+// NOTE: Regex is maniac ?
 
 type Project map[string]endpoint.Endpoint
 
@@ -25,7 +25,7 @@ type WcurlWrapper struct {
 	storage        storage.Storage
 }
 
-func (w *WcurlWrapper) SetCommand() {
+func (w *WcurlWrapper) Init() {
 	w.CommandHandler.Add("init", "initialize a new project", w.NewProject)
 	w.CommandHandler.Add("curl", "Write regular curl commands like any (init new project if doesn't exist)", w.CurlHandler)
 	w.CommandHandler.Add("list", "list endpoints", w.ListProjectEndpoints)
@@ -120,7 +120,7 @@ func (w *WcurlWrapper) CurlHandler() {
 	for _, projects := range w.Data {
 		projects[w.storage.ProjectID()] = ep
 	}
-
+	w.ShellExcuter(w.CommandHandler.GetUserInput())
 	w.Write()
 }
 
@@ -155,18 +155,18 @@ func (w WcurlWrapper) Execute() {
 
 	cmd := ep.Ep[targetEp][targetCmd]
 	w.ShellExcuter(cmd)
-
 }
 
 func (w WcurlWrapper) ShellExcuter(cmd string) {
 	var ex *exec.Cmd
-	ex = exec.Command("sh", "-c", cmd)
-
+	ex = exec.Command("sh", "-c", cmd+" -s ") // -s slient, ignore networking values
 	output, err := ex.CombinedOutput()
+
 	if err != nil {
 		fmt.Println("Error executing command:", err)
 		fmt.Println("Command output:", string(output))
 		return
 	}
+
 	fmt.Println(string(output))
 }
