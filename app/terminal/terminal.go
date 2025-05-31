@@ -11,7 +11,7 @@ const (
 	CTRL_C    = 3
 	ENTER     = 13
 	BACKSAPCE = 127
-	UP        = 27
+	UP        = 65
 )
 
 type TerminalHandler struct {
