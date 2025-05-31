@@ -36,14 +36,10 @@ func (e Endpoint) ListEndPoints() {
 	keys := make([]string, 0)
 	for endpoint, commands := range e.Ep {
 		keys = append(keys, endpoint)
-		fmt.Printf("%s %s %s", sep, endpoint, sep)
+		fmt.Printf("\n\r%s %s %s\n\r", sep, endpoint, sep)
 		i += 1
-		fmt.Println()
 		for j, command := range commands {
-			fmt.Printf("%d) -> %s\n", j, command)
-			if j == len(commands)-1 {
-				fmt.Println()
-			}
+			fmt.Printf("\n\r%d) -> %s\n\r", j, command)
 		}
 	}
 }

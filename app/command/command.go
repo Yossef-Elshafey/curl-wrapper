@@ -52,7 +52,7 @@ func (c *CommandHandler) shift() int {
 func (c *CommandHandler) printHelp() {
 	for _, v := range commandMap {
 		spaces := strings.Repeat(" ", c.shift()-len(v.Command))
-		fmt.Println(v.Command, spaces, v.Description)
+		fmt.Printf("\n\r%s %s %s", v.Command, spaces, v.Description)
 	}
 }
 
@@ -62,6 +62,6 @@ func (c *CommandHandler) CommandFactory(inp string) {
 	if action, ok := commandMap[reqAction[0]]; ok {
 		action.Executer()
 	} else {
-		fmt.Println("Unknown command:", reqAction[0])
+		fmt.Printf("\n\rUnknown command: %s", reqAction[0])
 	}
 }

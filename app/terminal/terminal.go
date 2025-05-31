@@ -2,32 +2,33 @@ package terminal
 
 import (
 	"fmt"
-	"wcurl/app/command"
-	// provides a terminal wizard like, where i could controll the input while being written
 	"golang.org/x/term"
 	"os"
+	"wcurl/app/command"
 )
 
 const (
 	CTRL_C    = 3
 	ENTER     = 13
 	BACKSAPCE = 127
+	UP        = 27
 )
 
 type TerminalHandler struct {
+	ch             command.CommandHandler
 	currentCommand string
-	histroy        []string
+	history        []string
 	currentBuffer  []byte
 	exit           int
 }
 
-func (th *TerminalHandler) ctrlCHandler() {
+func (th *TerminalHandler) ctrlCBehavior() {
 	if th.currentBuffer[0] == CTRL_C {
 		th.exit = 1
 	}
 }
 
-func (th *TerminalHandler) asciiRangeHandler() {
+func (th *TerminalHandler) asciiRangeBehavior() {
 	buf := th.currentBuffer[0]
 	if buf >= 32 && buf <= 126 {
 		fmt.Print(string(buf))
@@ -35,7 +36,11 @@ func (th *TerminalHandler) asciiRangeHandler() {
 	}
 }
 
-func (th *TerminalHandler) enterHandler(co command.CommandHandler) {
+func (th *TerminalHandler) saveToHistory() {
+	th.history = append(th.history, th.currentCommand)
+}
+
+func (th *TerminalHandler) enterBehavior() {
 	if th.currentBuffer[0] == ENTER {
 		switch th.currentCommand {
 		case "":
@@ -43,18 +48,16 @@ func (th *TerminalHandler) enterHandler(co command.CommandHandler) {
 		case "exit":
 			th.exit = 1
 		case "clear":
+			th.saveToHistory()
 			fmt.Print("\033[2J\033[H")
 			fmt.Print(">> ")
 		default:
-			th.NewLine("Hello world")
-			co.CommandFactory(th.currentCommand)
+			th.ch.CommandFactory(th.currentCommand)
+			th.saveToHistory()
+			fmt.Printf("\n\r>> ")
 		}
 		th.currentCommand = ""
 	}
-}
-
-func (th *TerminalHandler) NewLine(s string) {
-	fmt.Printf("\n\r%s", s)
 }
 
 func (th *TerminalHandler) backspaceBehavior() {
@@ -67,6 +70,21 @@ func (th *TerminalHandler) backspaceBehavior() {
 			th.currentCommand = th.currentCommand[0 : cmdLen-1]
 		}
 	}
+}
+
+func (th *TerminalHandler) arrowUpBehavior() {
+	fmt.Printf("\r\n%v", th.currentBuffer)
+	if th.currentBuffer[0] == UP {
+		fmt.Printf("\n\rArrow up detected")
+	}
+}
+
+func (th *TerminalHandler) behaviorsWrapper() {
+	th.ctrlCBehavior()
+	th.asciiRangeBehavior()
+	th.enterBehavior()
+	th.backspaceBehavior()
+	th.arrowUpBehavior()
 }
 
 func (th *TerminalHandler) Start(co command.CommandHandler) {
@@ -85,10 +103,7 @@ func (th *TerminalHandler) Start(co command.CommandHandler) {
 		}
 
 		th.currentBuffer = buf
-		th.ctrlCHandler()
-		th.asciiRangeHandler()
-		th.enterHandler(co)
-		th.backspaceBehavior()
+		th.behaviorsWrapper()
 
 		if th.exit == 1 {
 			fmt.Printf("\n\rExiting...\n\r")

@@ -13,7 +13,7 @@ import (
 	"wcurl/app/storage"
 )
 
-// NOTE: Endpoint is a map no order gurantee
+// NOTE: no order gurantee
 // NOTE: Add command stack, work with arrows
 // NOTE: Regex is maniac ?
 
@@ -29,7 +29,7 @@ func (w *WcurlWrapper) Init() {
 	w.CommandHandler.Add("init", "initialize a new project", w.NewProject)
 	w.CommandHandler.Add("curl", "Write regular curl commands like any (init new project if doesn't exist)", w.CurlHandler)
 	w.CommandHandler.Add("list", "list endpoints", w.ListProjectEndpoints)
-	w.CommandHandler.Add("exec", "Execute a command (exec { endpoint }.{ command num })", w.Execute)
+	w.CommandHandler.Add("exec", "Execute a command, exec <endpoint> -> <command number>", w.Execute)
 }
 
 func (w *WcurlWrapper) Load() WcurlWrapper {
@@ -84,8 +84,6 @@ func (w *WcurlWrapper) GetProjectEndpoint() endpoint.Endpoint {
 		if e, ok := projects[w.storage.ProjectID()]; ok {
 			ep = e
 			break
-		} else {
-			ep = endpoint.Endpoint{}
 		}
 	}
 
@@ -96,7 +94,7 @@ func (w *WcurlWrapper) NewProject() {
 	*w = w.Load()
 
 	if w.validateExistProject() {
-		fmt.Println("Project already exist")
+		fmt.Printf("\n\rProject already exist")
 		return
 	}
 
@@ -130,18 +128,29 @@ func (w WcurlWrapper) ListProjectEndpoints() {
 }
 
 func (w *WcurlWrapper) getExecValues() ([]string, error) {
-	command := strings.TrimPrefix(w.CommandHandler.GetUserInput(), "exec")
-	inp := strings.Split(command, "->")
-	if len(inp) != 2 {
-		return nil, errors.New("Unrecognzied exec command (ex. exec endpoint->0)")
+	// TODO: take more than one path or more than one command or comined, threading idiot
+	// TODO: need to write a command line parser functionality something like flags.parse()
+
+	raw := strings.TrimSpace(strings.TrimPrefix(w.CommandHandler.GetUserInput(), "exec"))
+	parts := strings.SplitN(raw, "->", 2)
+
+	if len(parts) != 2 {
+		return nil, errors.New("Invalid exec command. Expect: exec <endpoint> -> <number>")
 	}
-	return inp, nil
+
+	path, commandNum := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
+
+	if path == "" || commandNum == "" {
+		return nil, errors.New("Invalid exec command. Expect: exec <endpoint> -> <number>")
+	}
+
+	return []string{path, commandNum}, nil
 }
 
 func (w WcurlWrapper) Execute() {
 	limit, err := w.getExecValues()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("%s", err)
 		return
 	}
 	w = w.Load()
@@ -150,7 +159,7 @@ func (w WcurlWrapper) Execute() {
 	targetEp := strings.TrimSpace(limit[0])
 	targetCmd, err := strconv.Atoi(strings.TrimSpace(limit[1]))
 	if err != nil {
-		fmt.Println("Error while handling target endpoint command")
+		fmt.Printf("\n\rError while handling target endpoint command")
 	}
 
 	cmd := ep.Ep[targetEp][targetCmd]
@@ -159,14 +168,12 @@ func (w WcurlWrapper) Execute() {
 
 func (w WcurlWrapper) ShellExcuter(cmd string) {
 	var ex *exec.Cmd
-	ex = exec.Command("sh", "-c", cmd+" -s ") // -s slient, ignore networking values
+	ex = exec.Command("sh", "-c", cmd+" -s ")
 	output, err := ex.CombinedOutput()
-
 	if err != nil {
-		fmt.Println("Error executing command:", err)
-		fmt.Println("Command output:", string(output))
+		fmt.Printf("\n\rError executing command %s, make sure server is up?", cmd)
 		return
 	}
 
-	fmt.Println(string(output))
+	fmt.Printf("\n\r%s", string(output))
 }

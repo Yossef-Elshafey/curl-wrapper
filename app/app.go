@@ -10,7 +10,8 @@ func Run() {
 	t := terminal.TerminalHandler{}
 	ww := wcurl.WcurlWrapper{}
 	co := command.CommandHandler{}
-	t.Start(co)
 	ww.Init()
 	co.Init()
+
+	t.Start(co)
 }
