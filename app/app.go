@@ -12,6 +12,5 @@ func Run() {
 	co := command.CommandHandler{}
 	ww.Init()
 	co.Init()
-
 	t.Start(co)
 }
