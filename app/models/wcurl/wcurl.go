@@ -13,7 +13,6 @@ import (
 	"wcurl/app/storage"
 )
 
-// NOTE: no order gurantee
 // NOTE: Add command stack, work with arrows
 // NOTE: Regex is maniac ?
 

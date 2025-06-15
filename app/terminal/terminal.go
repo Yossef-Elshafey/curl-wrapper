@@ -73,9 +73,10 @@ func (th *TerminalHandler) backspaceBehavior() {
 }
 
 func (th *TerminalHandler) arrowUpBehavior() {
-	// fmt.Printf("\r\n%v", th.currentBuffer)
-	if th.currentBuffer[0] == UP {
-		fmt.Printf("\n\rArrow up detected")
+	press := 0
+	if th.currentBuffer[2] == UP {
+		fmt.Printf("\n\r Arrow up detected")
+		fmt.Printf("\n\r%v", th.history)
 	}
 }
 
