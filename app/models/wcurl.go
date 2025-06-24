@@ -12,8 +12,8 @@ import (
 	"wcurl/app/utils"
 )
 
-// NOTE: Add command stack, work with arrows
-// NOTE: Regex is maniac ?
+// NOTE: might need a caching struct, to avoide multiple acces on file, ds
+// NOTE: assume /foo /foo/1 both should be under one key ? or --no-save
 
 type Project map[string]Endpoint
 
@@ -27,7 +27,7 @@ func (w *WcurlWrapper) Init() {
 	w.CommandHandler.Add("init", "initialize a new project", w.NewProject)
 	w.CommandHandler.Add("curl", "Write regular curl commands like any (init new project if doesn't exist)", w.CurlHandler)
 	w.CommandHandler.Add("list", "list endpoints", w.ListProjectEndpoints)
-	w.CommandHandler.Add("exec", "Execute a command, exec <endpoint> -> <command number>", w.Execute)
+	w.CommandHandler.Add("exec", "Execute a command, exec <endpoint>-><command number>", w.Execute)
 }
 
 func (w *WcurlWrapper) Load() WcurlWrapper {
@@ -126,7 +126,7 @@ func (w WcurlWrapper) ListProjectEndpoints() {
 }
 
 func (w *WcurlWrapper) getExecValues() ([]string, error) {
-	// TODO: take more than one path or more than one command or comined, threading idiot
+	// TODO: take more than one path or more than one command or both, threading idiot
 	// TODO: need to write a command line parser functionality something like flags.parse()
 	// TODO: More effiecient error handling
 

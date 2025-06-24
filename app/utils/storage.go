@@ -19,9 +19,9 @@ func (s *Storage) ProjectID() string {
 
 	h := sha256.New()
 	h.Write([]byte(p))
-	// ph := h.Sum(nil)
+	ph := h.Sum(nil)
 
-	return fmt.Sprintf("%x", "foobar")
+	return fmt.Sprintf("%x", ph)
 }
 
 func (s *Storage) createDir(path string) {
