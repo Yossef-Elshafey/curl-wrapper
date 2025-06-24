@@ -37,6 +37,7 @@ func (c *CommandHandler) Add(command string, desc string, f func()) {
 		Description: desc,
 		Executer:    f,
 	}
+
 }
 
 func (c *CommandHandler) shift() int {

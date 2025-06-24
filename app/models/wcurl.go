@@ -1,4 +1,4 @@
-package wcurl
+package models
 
 import (
 	"encoding/json"
@@ -9,19 +9,18 @@ import (
 	"strconv"
 	"strings"
 	"wcurl/app/command"
-	"wcurl/app/models/endpoiot"
-	"wcurl/app/storage"
+	"wcurl/app/utils"
 )
 
 // NOTE: Add command stack, work with arrows
 // NOTE: Regex is maniac ?
 
-type Project map[string]endpoint.Endpoint
+type Project map[string]Endpoint
 
 type WcurlWrapper struct {
 	Data           []Project              `json:"data"`
 	CommandHandler command.CommandHandler `json:"-"`
-	storage        storage.Storage
+	storage        utils.Storage
 }
 
 func (w *WcurlWrapper) Init() {
@@ -76,8 +75,8 @@ func (w *WcurlWrapper) validateExistProject() bool {
 	return false
 }
 
-func (w *WcurlWrapper) GetProjectEndpoint() endpoint.Endpoint {
-	ep := endpoint.Endpoint{}
+func (w *WcurlWrapper) GetProjectEndpoint() Endpoint {
+	ep := Endpoint{}
 
 	for _, projects := range w.Data {
 		if e, ok := projects[w.storage.ProjectID()]; ok {
@@ -98,7 +97,7 @@ func (w *WcurlWrapper) NewProject() {
 	}
 
 	project := Project{}
-	project[w.storage.ProjectID()] = endpoint.Endpoint{}
+	project[w.storage.ProjectID()] = Endpoint{}
 
 	w.Data = append(w.Data, project)
 	w.Write()
@@ -110,7 +109,7 @@ func (w *WcurlWrapper) CurlHandler() {
 
 	if !w.validateExistProject() || len(w.Data) == 0 {
 		project := Project{}
-		project[w.storage.ProjectID()] = endpoint.Endpoint{}
+		project[w.storage.ProjectID()] = Endpoint{}
 		w.Data = append(w.Data, project)
 	}
 
@@ -129,6 +128,7 @@ func (w WcurlWrapper) ListProjectEndpoints() {
 func (w *WcurlWrapper) getExecValues() ([]string, error) {
 	// TODO: take more than one path or more than one command or comined, threading idiot
 	// TODO: need to write a command line parser functionality something like flags.parse()
+	// TODO: More effiecient error handling
 
 	raw := strings.TrimSpace(strings.TrimPrefix(w.CommandHandler.GetUserInput(), "exec"))
 	parts := strings.SplitN(raw, "->", 2)
@@ -149,7 +149,7 @@ func (w *WcurlWrapper) getExecValues() ([]string, error) {
 func (w WcurlWrapper) Execute() {
 	limit, err := w.getExecValues()
 	if err != nil {
-		fmt.Printf("%s", err)
+		fmt.Printf("\r\n%s", err)
 		return
 	}
 	w = w.Load()

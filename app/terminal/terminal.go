@@ -5,6 +5,7 @@ import (
 	"golang.org/x/term"
 	"os"
 	"wcurl/app/command"
+	"wcurl/app/utils"
 )
 
 const (
@@ -12,12 +13,13 @@ const (
 	ENTER     = 13
 	BACKSAPCE = 127
 	UP        = 65
+	DOWN      = 66
 )
 
 type TerminalHandler struct {
 	ch             command.CommandHandler
 	currentCommand string
-	history        []string
+	history        *utils.History
 	currentBuffer  []byte
 	exit           int
 }
@@ -36,10 +38,6 @@ func (th *TerminalHandler) asciiRangeBehavior() {
 	}
 }
 
-func (th *TerminalHandler) saveToHistory() {
-	th.history = append(th.history, th.currentCommand)
-}
-
 func (th *TerminalHandler) enterBehavior() {
 	if th.currentBuffer[0] == ENTER {
 		switch th.currentCommand {
@@ -48,35 +46,53 @@ func (th *TerminalHandler) enterBehavior() {
 		case "exit":
 			th.exit = 1
 		case "clear":
-			th.saveToHistory()
+			th.history.Save(th.currentCommand)
 			fmt.Print("\033[2J\033[H")
 			fmt.Print(">> ")
 		default:
 			th.ch.CommandFactory(th.currentCommand)
-			th.saveToHistory()
+			th.history.Save(th.currentCommand)
 			fmt.Printf("\n\r>> ")
 		}
 		th.currentCommand = ""
 	}
 }
 
+func (th *TerminalHandler) deleteChar() {
+	cmdLen := len(th.currentCommand)
+	if cmdLen > 0 {
+		fmt.Printf("\b")
+		fmt.Printf(" ")
+		fmt.Printf("\b")
+		th.currentCommand = th.currentCommand[0 : cmdLen-1]
+	}
+}
+
 func (th *TerminalHandler) backspaceBehavior() {
 	if th.currentBuffer[0] == BACKSAPCE {
-		cmdLen := len(th.currentCommand)
-		if cmdLen > 0 {
-			fmt.Printf("\b")
-			fmt.Printf(" ")
-			fmt.Printf("\b")
-			th.currentCommand = th.currentCommand[0 : cmdLen-1]
-		}
+		th.deleteChar()
+	}
+}
+
+func (th *TerminalHandler) clearPrompt() {
+	for range len(th.currentCommand) {
+		th.deleteChar()
 	}
 }
 
 func (th *TerminalHandler) arrowUpBehavior() {
-	press := 0
 	if th.currentBuffer[2] == UP {
-		fmt.Printf("\n\r Arrow up detected")
-		fmt.Printf("\n\r%v", th.history)
+		th.clearPrompt()
+		th.currentCommand = th.history.Prev()
+		fmt.Printf("%s", th.currentCommand)
+	}
+}
+
+func (th *TerminalHandler) arrowDownBehavior() {
+	if th.currentBuffer[2] == DOWN {
+		th.clearPrompt()
+		th.currentCommand = th.history.Next()
+		fmt.Printf("%s", th.currentCommand)
 	}
 }
 
@@ -86,6 +102,7 @@ func (th *TerminalHandler) behaviorsWrapper() {
 	th.enterBehavior()
 	th.backspaceBehavior()
 	th.arrowUpBehavior()
+	th.arrowDownBehavior()
 }
 
 func (th *TerminalHandler) Start(co command.CommandHandler) {
@@ -95,6 +112,10 @@ func (th *TerminalHandler) Start(co command.CommandHandler) {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 
+	if th.history == nil {
+		th.history = utils.NewHistory()
+	}
+
 	fmt.Print(">> ")
 	for {
 		buf := make([]byte, 3)
@@ -102,7 +123,6 @@ func (th *TerminalHandler) Start(co command.CommandHandler) {
 		if err != nil {
 			panic(err)
 		}
-
 		th.currentBuffer = buf
 		th.behaviorsWrapper()
 

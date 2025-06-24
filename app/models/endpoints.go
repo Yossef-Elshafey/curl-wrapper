@@ -1,16 +1,16 @@
-package endpoint
+package models
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 	"wcurl/app/command"
-	"wcurl/app/storage"
+	"wcurl/app/utils"
 )
 
 type Endpoint struct {
 	Ep             map[string][]string `json:"endpoints"`
-	storage        storage.Storage
+	storage        utils.Storage
 	commandHandler command.CommandHandler
 }
 
